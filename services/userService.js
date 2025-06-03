@@ -1,21 +1,20 @@
 import bcrypt from "bcrypt";
 import { ObjectId } from "mongodb";
 import userRepo from "../repository/userRepo.js";
-import validation from "../utils/validation.js";
 
 const userService = {
     async createUser(user) {
-        const { username, password, role } = user || {};
+        const { username, password, role = "users"} = user || {};
         const _user = await userRepo.getUserByUserName(username);
 
         if (_user) {
             throw new Error(`User with username ${username} already exists`);
         }
-
+        const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = {
             _id: new ObjectId(),
             username: username,
-            password: await bcrypt.hash(password, 10),
+            password: hashedPassword,
             role: role || "user"
         };
         const result = await userRepo.insertUser(newUser);

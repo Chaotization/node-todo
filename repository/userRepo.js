@@ -1,4 +1,4 @@
-import {users, todos} from "../database/mongoCollections.js";
+import {users} from "../database/mongoCollections.js";
 import {ObjectId} from "mongodb";
 
 const exportedMethods = {
@@ -25,10 +25,6 @@ const exportedMethods = {
     async getUserByUserName(username) {
         const userCollection = await users();
         const user = await userCollection.findOne({ username: username });
-        if (!user) {
-            throw new Error(`No user found with username ${username}`);
-        }
-
         return user;
     },
 

@@ -2,20 +2,20 @@ import validation from '../utils/validation.js';
 import userService from '../services/userService.js';
 
 const userController = {
-    async register(req, res) {
+    async createUser(req, res) {
         let { username, password } = req.body || {};
 
         try {
             username = validation.checkUsername(username);
             password = validation.checkPassword(password);
-            const user = await userService.createUser(username, password, role);
+            const user = await userService.createUser({username, password});
             return res.status(201).json({ message: 'Registration successful', user: user });
         } catch (error) {
             return res.status(500).json({ message: error.message });
         }
     },
 
-    async getUser(req, res) {
+    async getUserById(req, res) {
         let userId = req.params.id;
 
         try {
@@ -61,3 +61,5 @@ const userController = {
         }
     },
 }
+
+export default userController;

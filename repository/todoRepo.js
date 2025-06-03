@@ -1,4 +1,4 @@
-import {users, todos} from "../database/mongoCollections.js";
+import { todos } from "../database/mongoCollections.js";
 import {ObjectId} from "mongodb";
 
 const exportedMethods = {

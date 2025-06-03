@@ -1,4 +1,4 @@
-import todoService from '../service/todoService.js';
+import todoService from '../services/todoService.js';
 
 const todoController = {
     async createTodo(req, res) {
@@ -102,3 +102,5 @@ const todoController = {
         }
     }
 }
+
+export default todoController;
