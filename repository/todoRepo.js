@@ -1,39 +1,39 @@
-import {users, todos} from "../config/mongoCollections.js";
+import {users, todos} from "../database/mongoCollections.js";
 import {ObjectId} from "mongodb";
-import validation from "../validation.js";
-
 
 const exportedMethods = {
-    async createTodos (userId, title, description) {
-        userId = validation.checkId(userId);
-        title = validation.checkString(title, "Title");
-        description = validation.checkString(description, "Description");
-        const userCollection = await users();
-
-        const user = await userCollection.findOne({_id: new ObjectId(userId)});
-        if (!user) {
-            throw `No user found with ID ${userId}`;
-        }
+    async getAllTodos() {
         const todoCollection = await todos();
-        const newTodo = {
-            _id: new ObjectId(),
-            userId: new ObjectId(userId),
-            title: title,
-            description: description,
-            completed: false,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        };
-        const insertInfo = await todoCollection.insertOne(newTodo);
+        const allTodos = await todoCollection.find({}).toArray();
+        if (!allTodos || allTodos.length === 0) {
+            throw new Error("No todos found");
+        }
+        return allTodos;
+    },
+
+    async getTodoById(todoId) {
+        todoId = ObjectId.isValid(todoId) ? new ObjectId(todoId) : null;
+        if (!todoId) throw new Error("Invalid todo ID");
+
+        const todoCollection = await todos();
+        const todo = await todoCollection.findOne({ _id: todoId });
+        if (!todo) {
+            throw new Error(`No todo found with ID ${todoId}`);
+        }
+        return todo;
+    },
+
+    async createTodo(todo) {
+        const todoCollection = await todos();
+        const insertInfo = await todoCollection.insertOne(todo);
         if (!insertInfo.acknowledged || !insertInfo.insertedId) {
-            throw `Could not add todo for user with ID ${userId}`;
+            throw new Error("Could not add todo");
         }
 
-        return {todoInserted: true, todoId: insertInfo.insertedId};
+        return { todoInserted: true, todoId: insertInfo.insertedId.toString() };
     },
 
     async getTodosByUserId(userId) {
-        userId = validation.checkId(userId);
         const todoCollection = await todos();
         const todosList = await todoCollection.find({userId: new ObjectId(userId)}).toArray();
         if (!todosList || todosList.length === 0) {
@@ -42,18 +42,7 @@ const exportedMethods = {
         return todosList;
     },
 
-    async getTodoById(todoId) {
-        todoId = validation.checkId(todoId);
-        const todoCollection = await todos();
-        const todo = await todoCollection.findOne({_id: new ObjectId(todoId)});
-        if (!todo) {
-            throw `No todo found with ID ${todoId}`;
-        }
-        return todo;
-    },
-
     async updateTodo(todoId, updatedData) {
-        todoId = validation.checkId(todoId);
         const todoCollection = await todos();
         const updateInfo = await todoCollection.updateOne(
             {_id: new ObjectId(todoId)},
@@ -66,7 +55,6 @@ const exportedMethods = {
     },
 
     async deleteTodo(todoId) {
-        todoId = validation.checkId(todoId);
         const todoCollection = await todos();
         const deletionInfo = await todoCollection.deleteOne({_id: new ObjectId(todoId)});
         if (!deletionInfo.acknowledged || deletionInfo.deletedCount === 0) {
@@ -76,7 +64,6 @@ const exportedMethods = {
     },
 
     async markTodoAsCompleted(todoId) {
-        todoId = validation.checkId(todoId);
         const todoCollection = await todos();
         const updateInfo = await todoCollection.updateOne(
             {_id: new ObjectId(todoId)},
@@ -89,7 +76,6 @@ const exportedMethods = {
     },
 
     async markTodoAsIncomplete(todoId) {
-        todoId = validation.checkId(todoId);
         const todoCollection = await todos();
         const updateInfo = await todoCollection.updateOne(
             {_id: new ObjectId(todoId)},
@@ -100,15 +86,6 @@ const exportedMethods = {
         }
         return {todoMarkedAsIncomplete: true};
     },
-
-    async getAllTodos() {
-        const todoCollection = await todos();
-        const allTodos = await todoCollection.find({}).toArray();
-        if (!allTodos || allTodos.length === 0) {
-            throw "No todos found";
-        }
-        return allTodos;
-    }
-}
+};
 
 export default exportedMethods;

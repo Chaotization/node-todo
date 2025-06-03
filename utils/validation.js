@@ -1,7 +1,8 @@
 import {ObjectId} from "mongodb";
+import bcrypt from "bcrypt";
 
 const exportedMethods = {
-        checkId(id) {
+    checkId(id) {
         if (!id) {
             throw `No id is provided`;
         }
@@ -15,19 +16,21 @@ const exportedMethods = {
         return id;
     },
 
-    checkEmail(email) {
-        if (!email) throw "Please provide email";
-        if (typeof email !== "string" || email.trim().length <= 0) throw "Please provide a valid email";
-        email = email.trim().toLowerCase();
-        const emailPrefixRegex = /^[a-z0-9!#$%&'*+\-/=?^_`{|}~.]+@/i;
-        const emailPostfixRegex = /@stevens\.edu$/i;
-        if (!emailPrefixRegex.test(email)) {
-            throw "Email address should contain only letters, numbers, and common special symbols !#$%&'*+\\-/=?^_`{|} before the @ character"
+    checkUsername(username) {
+        if (!username) throw new Error("Please provide a username.");
+
+        if (typeof username !== "string" || username.trim().length === 0) {
+            throw new Error("Please provide a valid username.");
         }
-        if (!emailPostfixRegex.test(email)) {
-            throw "Error: Email address should end with stevens.edu";
+
+        username = username.trim().toLowerCase();
+
+        const usernameRegex = /^[a-z0-9!#$%&'*+\-/=?^_`{|}~.]+$/i;
+        if (!usernameRegex.test(username)) {
+            throw new Error("Username can only contain letters, numbers, and common special symbols !#$%&'*+\\-/=?^_`{|}~.");
         }
-        return email;
+
+        return username;
     },
 
     checkPassword(password) {
@@ -50,6 +53,11 @@ const exportedMethods = {
         return input;
     },
 
+    comparePassword(password, hashedPassword) {
+        if (!password || !hashedPassword) throw "Password or hashed password not provided";
+        if (typeof password !== "string" || typeof hashedPassword !== "string") throw "Both password and hashed password must be strings!";
+        return bcrypt.compare(password, hashedPassword);
+    }
 }
 
 export default exportedMethods;
